@@ -342,7 +342,7 @@
   /* ===== 印刷スタイル ===== */
   @media print {
     body { background: white; }
-    .app-header, .tabs, .main > :not(#preview-panel), .print-buttons { display: none !important; }
+    .app-header, .tabs, .main > :not(#preview-panel), .print-buttons, .no-print { display: none !important; }
     #preview-panel { display: block !important; }
     #preview-panel .card { box-shadow: none; border: none; }
     .preview-doc { padding: 0; }
@@ -514,7 +514,7 @@
         <div style="color:#a0aec0;text-align:center;padding:40px 0;">「プレビューを確認」ボタンで<br>文書を生成します</div>
       </div>
     </div>
-    <button class="btn btn-secondary mt-8" onclick="resetAll()" style="margin-top:16px;">🗑️ リセット（新しい患者）</button>
+    <button class="btn btn-secondary mt-8 no-print" onclick="resetAll()" style="margin-top:16px;">🗑️ リセット（新しい患者）</button>
   </div>
 
   <!-- ===== 設定タブ ===== -->
@@ -594,9 +594,9 @@ window.addEventListener('DOMContentLoaded', () => {
   // 今日の日付をセット
   document.getElementById('visit-date').value = new Date().toISOString().split('T')[0];
 
-  // クリニック名を復元
+  // クリニック名を復元（デフォルト：医療法人ベルサンテ　ふくみつ歯科医院）
   const saved = localStorage.getItem('clinicName');
-  if (saved) document.getElementById('clinic-name').value = saved;
+  document.getElementById('clinic-name').value = saved || '医療法人ベルサンテ　ふくみつ歯科医院';
 
   // 定型文を読み込む
   loadChips('problem', getProblemTemplates());
