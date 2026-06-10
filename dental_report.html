@@ -7,858 +7,743 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="歯科説明書">
 <title>訪問歯科 説明文書作成</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* ===== 基本スタイル ===== */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ===== リセット ===== */
+*{box-sizing:border-box;margin:0;padding:0;}
 
-  body {
-    font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
-    background: #f0f4f8;
-    color: #1a202c;
-    min-height: 100vh;
-  }
+body{
+  font-family:'Noto Sans JP',-apple-system,"Hiragino Sans",sans-serif;
+  background:#d8e4ee;
+  min-height:100vh;
+}
 
-  /* ===== ヘッダー ===== */
-  .app-header {
-    background: #2b6cb0;
-    color: white;
-    padding: 16px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .app-header h1 { font-size: 18px; font-weight: 700; }
-  .app-header span { font-size: 22px; }
+/* ===== 操作パネル（印刷非表示） ===== */
+.control-panel{
+  background:#1a2a3a;
+  color:#fff;
+  padding:12px 16px;
+  position:sticky;
+  top:0;
+  z-index:100;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+.cp-title{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;margin-right:4px;}
+.cp-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.cp-tab{
+  padding:7px 13px;font-size:12px;font-weight:600;
+  border:1px solid #3a5a70;border-radius:5px;
+  background:transparent;color:#8aaabf;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif;
+  transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.cp-tab.active{background:#1a6fa8;border-color:#1a6fa8;color:#fff;}
+.cp-tab:active{opacity:.8;}
+.cp-actions{margin-left:auto;display:flex;gap:6px;align-items:center;}
+.btn-print{
+  padding:8px 16px;background:#2a8a5a;color:#fff;
+  border:none;border-radius:5px;font-size:12px;font-weight:700;
+  font-family:'Noto Sans JP',sans-serif;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-reset-sm{
+  padding:8px 14px;background:#c0392b;color:#fff;
+  border:none;border-radius:5px;font-size:12px;font-weight:700;
+  font-family:'Noto Sans JP',sans-serif;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
 
-  /* ===== タブ ===== */
-  .tabs {
-    display: flex;
-    background: white;
-    border-bottom: 2px solid #e2e8f0;
-    position: sticky;
-    top: 56px;
-    z-index: 90;
-  }
-  .tab {
-    flex: 1;
-    padding: 12px 4px;
-    font-size: 12px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    color: #718096;
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-    user-select: none;
-  }
-  .tab.active {
-    color: #2b6cb0;
-    border-bottom-color: #2b6cb0;
-  }
-  .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+/* ===== ページラッパー ===== */
+.page-wrap{
+  display:flex;
+  justify-content:center;
+  padding:20px 12px 40px;
+}
 
-  /* ===== メインコンテンツ ===== */
-  .main { padding: 16px; max-width: 600px; margin: 0 auto; }
+/* ===== 入力パネル ===== */
+.input-panel{
+  width:100%;
+  max-width:680px;
+  display:none;
+  flex-direction:column;
+  gap:14px;
+}
+.input-panel.active{display:flex;}
 
-  .section-panel { display: none; }
-  .section-panel.active { display: block; }
+/* ===== A4ページ ===== */
+.page{
+  width:210mm;
+  min-height:297mm;
+  background:#fff;
+  padding:13mm 13mm 11mm;
+  display:none;
+  flex-direction:column;
+  gap:0;
+}
+.page.active{display:flex;}
 
-  /* ===== カード ===== */
-  .card {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-  .card-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #4a5568;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+/* ===== 入力カード ===== */
+.card{
+  background:#fff;
+  border-radius:10px;
+  padding:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+.card-title{
+  font-size:13px;font-weight:700;color:#1a2a3a;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:6px;
+  padding-bottom:10px;
+  border-bottom:2px solid #e8f0f8;
+}
+label{
+  display:block;font-size:12px;font-weight:600;
+  color:#5a7a90;margin-bottom:5px;margin-top:12px;
+  letter-spacing:.03em;
+}
+label:first-of-type{margin-top:0;}
+input[type="text"],input[type="date"],textarea{
+  width:100%;padding:10px 12px;
+  border:1.5px solid #d0e4f0;border-radius:7px;
+  font-size:15px;font-family:'Noto Sans JP',sans-serif;
+  background:#f8fbfe;color:#1a2a3a;
+  -webkit-appearance:none;
+  transition:border-color .15s;
+}
+input[type="text"]:focus,input[type="date"]:focus,textarea:focus{
+  outline:none;border-color:#1a6fa8;background:#fff;
+}
+textarea{resize:vertical;min-height:72px;}
 
-  /* ===== フォーム要素 ===== */
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #4a5568;
-    margin-bottom: 6px;
-    margin-top: 14px;
-  }
-  label:first-of-type { margin-top: 0; }
+.voice-field{display:flex;gap:8px;align-items:flex-start;}
+.voice-field input,.voice-field textarea{flex:1;}
+.btn-voice{
+  flex-shrink:0;width:42px;height:42px;border-radius:50%;
+  border:none;background:#e8f0f8;color:#1a6fa8;font-size:18px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;-webkit-tap-highlight-color:transparent;
+}
+.btn-voice.recording{background:#e74c3c;color:#fff;}
 
-  input[type="text"], input[type="date"], textarea {
-    width: 100%;
-    padding: 12px 14px;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 16px;
-    font-family: inherit;
-    transition: border-color 0.2s;
-    background: #f7fafc;
-    -webkit-appearance: none;
-  }
-  input[type="text"]:focus, input[type="date"]:focus, textarea:focus {
-    outline: none;
-    border-color: #2b6cb0;
-    background: white;
-  }
-  textarea { resize: vertical; min-height: 80px; }
+/* ===== 定型文チップ ===== */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.chip{
+  padding:7px 13px;border-radius:16px;
+  background:#e8f0f8;color:#1a6fa8;
+  font-size:12px;font-weight:600;
+  border:1.5px solid #bcd4e8;cursor:pointer;
+  transition:all .12s;-webkit-tap-highlight-color:transparent;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.chip.selected{background:#1a6fa8;color:#fff;border-color:#1a6fa8;}
 
-  /* 音声入力付きフィールド */
-  .voice-field {
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
-  }
-  .voice-field input, .voice-field textarea { flex: 1; }
+/* ===== 写真グリッド ===== */
+.photos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.photo-item{
+  position:relative;border-radius:8px;overflow:hidden;
+  background:#f0f6fb;border:1.5px solid #d0e4f0;
+}
+.photo-item img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.photo-caption{padding:6px 8px;border-top:1px solid #d0e4f0;}
+.photo-caption input{border:none;background:transparent;font-size:12px;padding:3px 4px;width:100%;font-family:'Noto Sans JP',sans-serif;}
+.photo-caption input:focus{outline:none;}
+.btn-remove-photo{
+  position:absolute;top:5px;right:5px;
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(0,0,0,.55);color:#fff;border:none;
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.btn-add-photo{
+  background:#f0f6fb;color:#1a6fa8;
+  border:2px dashed #8ac4e8;border-radius:8px;
+  width:100%;padding:16px;font-size:14px;font-weight:700;
+  font-family:'Noto Sans JP',sans-serif;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
 
-  .btn-voice {
-    flex-shrink: 0;
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    border: none;
-    background: #ebf8ff;
-    color: #2b6cb0;
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn-voice:active, .btn-voice.recording {
-    background: #fc8181;
-    color: white;
-    transform: scale(1.1);
-  }
+/* ===== 次へボタン ===== */
+.btn-next{
+  width:100%;padding:13px;background:#1a6fa8;color:#fff;
+  border:none;border-radius:8px;font-size:14px;font-weight:700;
+  font-family:'Noto Sans JP',sans-serif;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-build{
+  width:100%;padding:13px;background:#2a8a5a;color:#fff;
+  border:none;border-radius:8px;font-size:14px;font-weight:700;
+  font-family:'Noto Sans JP',sans-serif;cursor:pointer;
+}
 
-  /* ===== ボタン ===== */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 20px;
-    border-radius: 12px;
-    border: none;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-  }
-  .btn:active { transform: scale(0.97); }
-  .btn-primary { background: #2b6cb0; color: white; width: 100%; }
-  .btn-secondary { background: #e2e8f0; color: #4a5568; width: 100%; }
-  .btn-danger { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; }
-  .btn-add-photo {
-    background: #f0fff4;
-    color: #276749;
-    border: 2px dashed #9ae6b4;
-    width: 100%;
-    padding: 20px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
+/* ===== ══════ A4ドキュメント ══════ ===== */
 
-  /* ===== 写真グリッド ===== */
-  .photos-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  .photo-item {
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #f7fafc;
-    border: 2px solid #e2e8f0;
-  }
-  .photo-item img {
-    width: 100%;
-    aspect-ratio: 4/3;
-    object-fit: cover;
-    display: block;
-  }
-  .photo-caption {
-    padding: 8px;
-    border-top: 1px solid #e2e8f0;
-  }
-  .photo-caption input {
-    border: none;
-    background: transparent;
-    font-size: 13px;
-    padding: 4px 6px;
-    width: 100%;
-  }
-  .photo-caption input:focus { outline: none; }
-  .btn-remove-photo {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    border: none;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+/* ヘッダー */
+.header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding-bottom:10px;border-bottom:3px solid #1a6fa8;margin-bottom:13px;
+}
+.clinic-block{line-height:1.65;}
+.clinic-main{font-size:13px;font-weight:700;color:#1a2a3a;}
+.clinic-legal{font-size:10px;color:#5a7a90;}
+.clinic-addr{font-size:10px;color:#5a7a90;margin-top:1px;}
+.doc-title-block{text-align:right;}
+.doc-title{font-size:21px;font-weight:700;color:#1a6fa8;letter-spacing:.02em;}
+.doc-subtitle{font-size:10.5px;color:#5a7a90;margin-top:2px;}
 
-  /* ===== 定型文チップ ===== */
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-  }
-  .chip {
-    padding: 8px 14px;
-    border-radius: 20px;
-    background: #ebf8ff;
-    color: #2b6cb0;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border: 2px solid #bee3f8;
-    transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-  }
-  .chip.selected {
-    background: #2b6cb0;
-    color: white;
-    border-color: #2b6cb0;
-  }
-  .chip:active { transform: scale(0.96); }
+/* 患者バー */
+.patient-bar{
+  background:#f0f6fb;border-left:4px solid #1a6fa8;
+  border-radius:0 6px 6px 0;padding:9px 14px;
+  display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:14px;
+}
+.pf{display:flex;align-items:baseline;gap:5px;}
+.pl{font-size:10px;color:#5a7a90;white-space:nowrap;}
+.pv{font-size:13px;font-weight:700;color:#1a2a3a;}
+.pv.name{font-size:15px;color:#1a6fa8;}
 
-  /* ===== 選択済みリスト ===== */
-  .selected-list {
-    margin-top: 12px;
-    min-height: 44px;
-    padding: 10px 12px;
-    background: #f7fafc;
-    border-radius: 10px;
-    border: 2px solid #e2e8f0;
-    font-size: 14px;
-    line-height: 1.8;
-    color: #2d3748;
-  }
-  .selected-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 0;
-  }
-  .selected-item span { flex: 1; }
-  .btn-remove-item {
-    background: none;
-    border: none;
-    color: #a0aec0;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0 4px;
-  }
+/* セクション共通 */
+.section{margin-bottom:13px;}
+.sec-header{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.sec-icon{
+  width:26px;height:26px;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+.ic-blue{background:#1a6fa8;color:#fff;}
+.ic-green{background:#2a8a5a;color:#fff;}
+.ic-amber{background:#c07a18;color:#fff;}
+.ic-teal{background:#1a8a9a;color:#fff;}
+.ic-purple{background:#6a3a9a;color:#fff;}
+.sec-title{font-size:12.5px;font-weight:700;color:#1a2a3a;letter-spacing:.03em;}
 
-  /* ===== 設定画面 ===== */
-  .settings-item {
-    padding: 16px 0;
-    border-bottom: 1px solid #f0f4f8;
-  }
-  .settings-item:last-child { border-bottom: none; }
+/* 診断ボックス */
+.diag-box{
+  background:#f0f6fb;border:1px solid #bcd4e8;
+  border-radius:7px;padding:9px 13px;
+  font-size:12px;line-height:1.85;color:#1a2a3a;
+  min-height:52px;
+}
+.diag-box .hl{color:#1a6fa8;font-weight:700;}
 
-  .template-editor {
-    width: 100%;
-    min-height: 120px;
-    font-size: 14px;
-    font-family: inherit;
-    padding: 12px;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    background: #f7fafc;
-    resize: vertical;
-  }
-  .settings-hint { font-size: 12px; color: #a0aec0; margin-top: 6px; }
+/* 写真グリッド（文書内） */
+.doc-photos{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  margin-bottom:13px;
+}
+.doc-photo-item img{
+  width:100%;aspect-ratio:4/3;object-fit:cover;
+  border-radius:5px;border:1px solid #d0e4f0;display:block;
+}
+.doc-photo-cap{font-size:9.5px;color:#5a7a90;text-align:center;margin-top:3px;}
 
-  /* ===== プレビュー ===== */
-  #preview-panel .card { padding: 0; overflow: hidden; }
-  .preview-doc {
-    padding: 24px;
-    font-size: 14px;
-  }
-  .preview-clinic { font-size: 11px; color: #718096; margin-bottom: 2px; }
-  .preview-title { font-size: 20px; font-weight: 700; color: #2b6cb0; margin-bottom: 4px; }
-  .preview-divider { border: none; border-top: 2px solid #2b6cb0; margin: 12px 0; }
-  .preview-info { font-size: 14px; margin-bottom: 16px; line-height: 2; }
-  .preview-info strong { display: inline-block; width: 80px; color: #718096; }
-  .preview-photos {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .preview-photo-item img {
-    width: 100%;
-    aspect-ratio: 4/3;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid #e2e8f0;
-  }
-  .preview-photo-caption { font-size: 11px; color: #718096; margin-top: 4px; text-align: center; }
-  .preview-section { margin-bottom: 16px; }
-  .preview-section-title {
-    font-size: 14px;
-    font-weight: 700;
-    background: #ebf8ff;
-    color: #2b6cb0;
-    padding: 6px 12px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    border-left: 4px solid #2b6cb0;
-  }
-  .preview-section-body { padding-left: 12px; font-size: 14px; line-height: 2; }
-  .preview-footer { font-size: 11px; color: #a0aec0; text-align: right; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+/* ステップ */
+.steps{display:flex;flex-direction:column;gap:5px;}
+.step{display:flex;gap:9px;align-items:flex-start;}
+.snum{
+  width:20px;height:20px;border-radius:50%;
+  background:#1a6fa8;color:#fff;font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
+}
+.scont{flex:1;}
+.stitle{font-size:11.5px;font-weight:700;color:#1a2a3a;margin-bottom:1px;}
+.sdesc{font-size:10.5px;color:#4a6070;line-height:1.6;}
 
-  /* ===== 印刷スタイル ===== */
-  @media print {
-    body { background: white; }
-    .app-header, .tabs, .main > :not(#preview-panel), .print-buttons, .no-print { display: none !important; }
-    #preview-panel { display: block !important; }
-    #preview-panel .card { box-shadow: none; border: none; }
-    .preview-doc { padding: 0; }
-    @page { size: A4; margin: 20mm; }
-  }
+/* 2カラム */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.notice-card{background:#fff8ed;border:1px solid #e8c870;border-radius:7px;padding:9px 12px;}
+.care-card{background:#edf7f0;border:1px solid #90d0aa;border-radius:7px;padding:9px 12px;}
+.nc-title{font-size:11px;font-weight:700;color:#8a5a10;margin-bottom:5px;}
+.cc-title{font-size:11px;font-weight:700;color:#1a5a30;margin-bottom:5px;}
+.nl{list-style:none;padding:0;}
+.nl li{font-size:10.5px;line-height:1.65;padding-left:11px;position:relative;margin-bottom:1px;}
+.notice-card .nl li::before{content:"・";position:absolute;left:0;color:#c07a18;}
+.care-card .nl li::before{content:"✓";position:absolute;left:0;color:#2a8a5a;font-size:9.5px;}
 
-  /* ===== ユーティリティ ===== */
-  .mt-8 { margin-top: 8px; }
-  .mt-12 { margin-top: 12px; }
-  .print-buttons { display: flex; gap: 12px; margin-bottom: 16px; }
-  .print-buttons .btn { flex: 1; }
+/* 自由コメント */
+.comment-box{
+  background:#fafafa;border:1px solid #c8d8e4;
+  border-radius:7px;padding:9px 13px;
+  min-height:52px;font-size:11.5px;line-height:1.85;color:#1a2a3a;
+}
 
-  .toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2d3748;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 24px;
-    font-size: 14px;
-    font-weight: 600;
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; }
+/* 家族ボックス */
+.family-box{background:#f5f0fa;border:1px solid #c0a8e0;border-radius:7px;padding:9px 13px;}
+.fam-title{font-size:11px;font-weight:700;color:#5a3a8a;margin-bottom:7px;}
+.memo-lines{display:flex;flex-direction:column;gap:5px;}
+.memo-line{font-size:10.5px;color:#3a2a5a;border-bottom:1px dotted #c0a8e0;padding-bottom:3px;line-height:1.7;}
+.ml{font-weight:700;margin-right:5px;color:#5a3a8a;}
 
-  .badge {
-    display: inline-block;
-    background: #fc8181;
-    color: white;
-    border-radius: 10px;
-    font-size: 11px;
-    padding: 1px 6px;
-    margin-left: 4px;
-    font-weight: 700;
-  }
+/* フッター */
+.footer{
+  margin-top:auto;padding-top:9px;
+  border-top:1.5px solid #1a6fa8;
+  display:flex;justify-content:space-between;align-items:flex-end;
+}
+.fc{font-size:10px;color:#5a7a90;line-height:1.65;}
+.fc strong{color:#1a2a3a;font-size:11px;}
+.fd{font-size:10px;color:#8a9aa8;text-align:right;line-height:1.65;}
+
+/* ===== トースト ===== */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#1a2a3a;color:#fff;padding:10px 22px;
+  border-radius:20px;font-size:13px;font-weight:600;
+  z-index:9999;opacity:0;transition:opacity .25s;
+  pointer-events:none;white-space:nowrap;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.toast.show{opacity:1;}
+
+/* ===== 印刷 ===== */
+@media print{
+  .control-panel,.input-panel{display:none!important;}
+  body{background:#fff;}
+  .page-wrap{padding:0;}
+  .page{display:flex!important;width:210mm;min-height:297mm;padding:13mm 13mm 11mm;}
+  @page{size:A4;margin:0;}
+}
 </style>
 </head>
 <body>
 
-<div class="app-header">
-  <span>🦷</span>
-  <h1>訪問歯科 説明文書</h1>
-</div>
-
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('info')">
-    <span class="tab-icon">📋</span>患者情報
+<!-- ══ 操作パネル ══ -->
+<div class="control-panel">
+  <div class="cp-title">🦷 歯科説明書</div>
+  <div class="cp-tabs">
+    <button class="cp-tab active" onclick="switchTab('info')">📋 患者情報</button>
+    <button class="cp-tab" onclick="switchTab('photos')">📷 写真</button>
+    <button class="cp-tab" onclick="switchTab('report')">📝 診療内容</button>
+    <button class="cp-tab" onclick="switchTab('preview'); buildPreview();">👁 プレビュー</button>
+    <button class="cp-tab" onclick="switchTab('settings')">⚙️ 設定</button>
   </div>
-  <div class="tab" onclick="switchTab('photos')">
-    <span class="tab-icon">📷</span>写真
-  </div>
-  <div class="tab" onclick="switchTab('report')">
-    <span class="tab-icon">📝</span>診療内容
-  </div>
-  <div class="tab" onclick="switchTab('preview')">
-    <span class="tab-icon">👁</span>プレビュー
-  </div>
-  <div class="tab" onclick="switchTab('settings')">
-    <span class="tab-icon">⚙️</span>設定
+  <div class="cp-actions">
+    <button class="btn-reset-sm" onclick="resetAll()">🗑 リセット</button>
+    <button class="btn-print" onclick="buildPreview(); setTimeout(()=>window.print(),300)">🖨 印刷</button>
   </div>
 </div>
 
-<div class="main">
+<div class="page-wrap">
 
-  <!-- ===== 患者情報タブ ===== -->
-  <div id="info-panel" class="section-panel active">
+  <!-- ══ 患者情報 ══ -->
+  <div class="input-panel active" id="info-panel">
     <div class="card">
       <div class="card-title">🏥 クリニック情報</div>
-      <label>クリニック名</label>
-      <input type="text" id="clinic-name" placeholder="例：○○歯科クリニック" oninput="saveClinicName()">
+      <label>クリニック名（法人名）</label>
+      <input type="text" id="clinic-legal" placeholder="医療法人ベルサンテ" oninput="saveSettings()">
+      <label>クリニック名（医院名）</label>
+      <input type="text" id="clinic-main" placeholder="ふくみつ歯科医院" oninput="saveSettings()">
+      <label>住所・電話</label>
+      <input type="text" id="clinic-addr" placeholder="〒814-0152　福岡市城南区長尾5-31-6　Tel: 092-861-8888" oninput="saveSettings()">
     </div>
     <div class="card">
       <div class="card-title">👤 患者情報</div>
       <label>患者氏名</label>
       <div class="voice-field">
-        <input type="text" id="patient-name" placeholder="例：山田 太郎">
-        <button class="btn-voice" onclick="startVoice('patient-name', this)" title="音声入力">🎤</button>
+        <input type="text" id="patient-name" placeholder="例：山田 花子">
+        <button class="btn-voice" onclick="startVoice('patient-name',this)">🎤</button>
       </div>
-      <label>診療日</label>
-      <input type="date" id="visit-date">
-      <label>担当歯科医師（任意）</label>
+      <label>生年月日・年齢</label>
       <div class="voice-field">
-        <input type="text" id="doctor-name" placeholder="例：田中 一郎 先生">
-        <button class="btn-voice" onclick="startVoice('doctor-name', this)" title="音声入力">🎤</button>
+        <input type="text" id="patient-dob" placeholder="例：昭和○○年○月○日（○○歳）">
+        <button class="btn-voice" onclick="startVoice('patient-dob',this)">🎤</button>
       </div>
+      <label>担当医師</label>
+      <div class="voice-field">
+        <input type="text" id="doctor-name" placeholder="例：福光　○○">
+        <button class="btn-voice" onclick="startVoice('doctor-name',this)">🎤</button>
+      </div>
+      <label>作成日</label>
+      <input type="date" id="visit-date">
     </div>
-    <button class="btn btn-primary" onclick="switchTab('photos')">次へ：写真を追加 →</button>
+    <button class="btn-next" onclick="switchTab('photos')">次へ：写真を追加 →</button>
   </div>
 
-  <!-- ===== 写真タブ ===== -->
-  <div id="photos-panel" class="section-panel">
+  <!-- ══ 写真 ══ -->
+  <div class="input-panel" id="photos-panel">
     <div class="card">
       <div class="card-title">📷 口腔内写真</div>
       <div class="photos-grid" id="photos-grid"></div>
       <label style="cursor:pointer;">
-        <div class="btn-add-photo">
-          ＋ 写真を追加する（カメラロールから選択）
-        </div>
+        <div class="btn-add-photo">＋ 写真を追加する（カメラロールから選択）</div>
         <input type="file" accept="image/*" multiple style="display:none;" onchange="addPhotos(this)">
       </label>
     </div>
-    <button class="btn btn-primary" onclick="switchTab('report')">次へ：診療内容を入力 →</button>
+    <button class="btn-next" onclick="switchTab('report')">次へ：診療内容を入力 →</button>
   </div>
 
-  <!-- ===== 診療内容タブ ===== -->
-  <div id="report-panel" class="section-panel">
-    <!-- 問題点 -->
+  <!-- ══ 診療内容 ══ -->
+  <div class="input-panel" id="report-panel">
     <div class="card">
-      <div class="card-title">⚠️ 現状の問題点</div>
-      <p style="font-size:13px;color:#718096;margin-bottom:8px;">タップで選択・解除できます</p>
+      <div class="card-title">🦷 現状・診断</div>
+      <p style="font-size:12px;color:#5a7a90;margin-bottom:8px;">タップで選択・解除</p>
       <div class="chips" id="problem-chips"></div>
-      <div class="mt-12">
-        <label>自由記述（音声入力可）</label>
-        <div class="voice-field">
-          <textarea id="problem-custom" placeholder="その他の問題点を入力..."></textarea>
-          <button class="btn-voice" onclick="startVoice('problem-custom', this)" style="margin-top:2px;" title="音声入力">🎤</button>
-        </div>
+      <label>自由記述（音声入力可）</label>
+      <div class="voice-field">
+        <textarea id="problem-custom" placeholder="その他の所見・詳細を入力..."></textarea>
+        <button class="btn-voice" onclick="startVoice('problem-custom',this)" style="margin-top:2px;">🎤</button>
       </div>
-      <div style="margin-top:12px;">
-        <div style="font-size:13px;font-weight:600;color:#4a5568;margin-bottom:6px;">選択中の問題点</div>
-        <div class="selected-list" id="problem-selected-list"><span style="color:#a0aec0;">未選択</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 治療計画・対応内容</div>
+      <p style="font-size:12px;color:#5a7a90;margin-bottom:8px;">タップで選択・解除</p>
+      <div class="chips" id="treatment-chips"></div>
+      <label>自由記述（音声入力可）</label>
+      <div class="voice-field">
+        <textarea id="treatment-custom" placeholder="その他の治療計画を入力..."></textarea>
+        <button class="btn-voice" onclick="startVoice('treatment-custom',this)" style="margin-top:2px;">🎤</button>
       </div>
+    </div>
+    <div class="card">
+      <div class="card-title">✏️ 担当医より・備考</div>
+      <div class="voice-field">
+        <textarea id="notes" placeholder="家族へのメッセージ、次回予定など..."></textarea>
+        <button class="btn-voice" onclick="startVoice('notes',this)" style="margin-top:2px;">🎤</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💬 ご家族へのメモ</div>
+      <label>サポートのポイント</label>
+      <div class="voice-field">
+        <input type="text" id="fam-support" placeholder="例：やわらか食を一緒に考えていただけると回復が早まります">
+        <button class="btn-voice" onclick="startVoice('fam-support',this)">🎤</button>
+      </div>
+      <label>受診の目安</label>
+      <div class="voice-field">
+        <input type="text" id="fam-watch" placeholder="例：痛みが続く・食事が取れない場合はご連絡ください">
+        <button class="btn-voice" onclick="startVoice('fam-watch',this)">🎤</button>
+      </div>
+      <label>次回予約</label>
+      <div class="voice-field">
+        <input type="text" id="fam-next" placeholder="例：2026年7月10日（木）10:00　担当：福光">
+        <button class="btn-voice" onclick="startVoice('fam-next',this)">🎤</button>
+      </div>
+    </div>
+    <button class="btn-build" onclick="switchTab('preview'); buildPreview();">プレビューを確認・印刷 →</button>
+  </div>
+
+  <!-- ══ A4ページ（プレビュー＆印刷） ══ -->
+  <div class="page" id="preview-panel">
+
+    <div class="header">
+      <div class="clinic-block">
+        <div class="clinic-legal" id="pr-clinic-legal"></div>
+        <div class="clinic-main" id="pr-clinic-main"></div>
+        <div class="clinic-addr" id="pr-clinic-addr"></div>
+      </div>
+      <div class="doc-title-block">
+        <div class="doc-title">歯科診療報告書</div>
+        <div class="doc-subtitle">ご家族の方へ</div>
+      </div>
+    </div>
+
+    <div class="patient-bar">
+      <div class="pf">
+        <span class="pl">患者氏名</span>
+        <span class="pv name" id="pr-name">—</span>
+      </div>
+      <div class="pf">
+        <span class="pl">生年月日</span>
+        <span class="pv" id="pr-dob">—</span>
+      </div>
+      <div class="pf">
+        <span class="pl">担当医</span>
+        <span class="pv" id="pr-doctor">—</span>
+      </div>
+      <div class="pf">
+        <span class="pl">作成日</span>
+        <span class="pv" id="pr-date">—</span>
+      </div>
+    </div>
+
+    <!-- 写真 -->
+    <div class="section" id="pr-photos-section" style="display:none;">
+      <div class="sec-header">
+        <div class="sec-icon ic-teal">📷</div>
+        <div class="sec-title">口腔内写真</div>
+      </div>
+      <div class="doc-photos" id="pr-photos"></div>
+    </div>
+
+    <!-- 現状と診断 -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-icon ic-blue">🦷</div>
+        <div class="sec-title">現状と診断</div>
+      </div>
+      <div class="diag-box" id="pr-diagnosis">—</div>
     </div>
 
     <!-- 治療計画 -->
-    <div class="card">
-      <div class="card-title">💊 治療計画・対応内容</div>
-      <p style="font-size:13px;color:#718096;margin-bottom:8px;">タップで選択・解除できます</p>
-      <div class="chips" id="treatment-chips"></div>
-      <div class="mt-12">
-        <label>自由記述（音声入力可）</label>
-        <div class="voice-field">
-          <textarea id="treatment-custom" placeholder="その他の治療計画を入力..."></textarea>
-          <button class="btn-voice" onclick="startVoice('treatment-custom', this)" style="margin-top:2px;" title="音声入力">🎤</button>
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-icon ic-blue">📋</div>
+        <div class="sec-title">治療計画・対応内容</div>
+      </div>
+      <div class="diag-box" id="pr-treatment">—</div>
+    </div>
+
+    <!-- 注意事項 ＋ ケア -->
+    <div class="section two-col">
+      <div class="notice-card">
+        <div class="nc-title">⚠️ 注意事項</div>
+        <ul class="nl" id="pr-notices">
+          <li>入れ歯が合わない・痛い場合は我慢せずご連絡ください</li>
+          <li>最初の2〜3週間は硬いものを避けてください</li>
+          <li>就寝時は入れ歯を外して保管してください</li>
+          <li>熱湯・漂白剤での消毒は変形の原因になります</li>
+        </ul>
+      </div>
+      <div class="care-card">
+        <div class="cc-title">🌿 毎日のケア方法</div>
+        <ul class="nl" id="pr-cares">
+          <li>食後は入れ歯を外して水洗いする</li>
+          <li>専用ブラシで汚れをやさしく落とす</li>
+          <li>週1〜2回は入れ歯洗浄剤を使用する</li>
+          <li>残っている歯・歯ぐきも毎日丁寧に磨く</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 担当医より -->
+    <div class="section">
+      <div class="sec-header">
+        <div class="sec-icon ic-purple">✏️</div>
+        <div class="sec-title">担当医より</div>
+      </div>
+      <div class="comment-box" id="pr-notes">—</div>
+    </div>
+
+    <!-- ご家族へのメモ -->
+    <div class="section">
+      <div class="family-box">
+        <div class="fam-title">💬 ご家族の方へ</div>
+        <div class="memo-lines">
+          <div class="memo-line"><span class="ml">サポートのポイント：</span><span id="pr-fam-support">—</span></div>
+          <div class="memo-line"><span class="ml">受診の目安：</span><span id="pr-fam-watch">—</span></div>
+          <div class="memo-line"><span class="ml">次回予約：</span><span id="pr-fam-next">—</span></div>
         </div>
       </div>
-      <div style="margin-top:12px;">
-        <div style="font-size:13px;font-weight:600;color:#4a5568;margin-bottom:6px;">選択中の治療計画</div>
-        <div class="selected-list" id="treatment-selected-list"><span style="color:#a0aec0;">未選択</span></div>
-      </div>
     </div>
 
-    <!-- 備考 -->
-    <div class="card">
-      <div class="card-title">📌 次回予定・備考（任意）</div>
-      <div class="voice-field">
-        <textarea id="notes" placeholder="次回訪問予定、家族への申し送りなど..."></textarea>
-        <button class="btn-voice" onclick="startVoice('notes', this)" style="margin-top:2px;" title="音声入力">🎤</button>
+    <!-- フッター -->
+    <div class="footer">
+      <div class="fc">
+        <strong id="pr-footer-clinic">医療法人ベルサンテ　ふくみつ歯科医院</strong><br>
+        <span id="pr-footer-addr">〒814-0152　福岡市城南区長尾5-31-6</span><br>
       </div>
+      <div class="fd">歯科診療報告書<br><span id="pr-footer-date">—</span></div>
     </div>
 
-    <button class="btn btn-primary" onclick="switchTab('preview'); buildPreview();">プレビューを確認 →</button>
-  </div>
+  </div><!-- /page -->
 
-  <!-- ===== プレビュータブ ===== -->
-  <div id="preview-panel" class="section-panel">
-    <div class="print-buttons">
-      <button class="btn btn-primary" onclick="window.print()">🖨️ 印刷する</button>
-      <button class="btn btn-secondary" onclick="buildPreview()">🔄 更新</button>
+  <!-- ══ 設定 ══ -->
+  <div class="input-panel" id="settings-panel">
+    <div class="card">
+      <div class="card-title">⚠️ 問題点の定型文</div>
+      <textarea class="tmpl-editor" id="problem-templates-editor" style="width:100%;min-height:120px;font-size:13px;font-family:'Noto Sans JP',sans-serif;padding:10px;border:1.5px solid #d0e4f0;border-radius:7px;background:#f8fbfe;"></textarea>
+      <p style="font-size:11px;color:#8a9aa8;margin-top:4px;">1行に1項目</p>
+      <button class="btn-next" style="margin-top:10px;" onclick="saveTemplates('problem')">💾 問題点を保存</button>
     </div>
     <div class="card">
-      <div id="preview-content" class="preview-doc">
-        <div style="color:#a0aec0;text-align:center;padding:40px 0;">「プレビューを確認」ボタンで<br>文書を生成します</div>
-      </div>
-    </div>
-    <button class="btn btn-secondary mt-8 no-print" onclick="resetAll()" style="margin-top:16px;">🗑️ リセット（新しい患者）</button>
-  </div>
-
-  <!-- ===== 設定タブ ===== -->
-  <div id="settings-panel" class="section-panel">
-    <div class="card">
-      <div class="card-title">⚠️ 問題点の定型文を編集</div>
-      <div class="settings-item">
-        <textarea class="template-editor" id="problem-templates-editor"></textarea>
-        <div class="settings-hint">1行に1項目。変更後「保存」を押してください。</div>
-      </div>
-      <button class="btn btn-primary mt-8" onclick="saveTemplates('problem')">💾 問題点を保存</button>
-    </div>
-    <div class="card">
-      <div class="card-title">💊 治療計画の定型文を編集</div>
-      <div class="settings-item">
-        <textarea class="template-editor" id="treatment-templates-editor"></textarea>
-        <div class="settings-hint">1行に1項目。変更後「保存」を押してください。</div>
-      </div>
-      <button class="btn btn-primary mt-8" onclick="saveTemplates('treatment')">💾 治療計画を保存</button>
-    </div>
-    <div class="card">
-      <div class="card-title">ℹ️ このアプリについて</div>
-      <p style="font-size:13px;color:#718096;line-height:1.8;">
-        訪問歯科診療での患者家族向け説明文書を、iPhone上で完結して作成できるツールです。<br><br>
-        作成した文書は印刷ボタンから直接印刷（AirPrint対応プリンター）、またはPDFとして保存できます。<br><br>
-        データはこのデバイスのみに保存され、外部に送信されることはありません。
-      </p>
+      <div class="card-title">📋 治療計画の定型文</div>
+      <textarea class="tmpl-editor" id="treatment-templates-editor" style="width:100%;min-height:120px;font-size:13px;font-family:'Noto Sans JP',sans-serif;padding:10px;border:1.5px solid #d0e4f0;border-radius:7px;background:#f8fbfe;"></textarea>
+      <p style="font-size:11px;color:#8a9aa8;margin-top:4px;">1行に1項目</p>
+      <button class="btn-next" style="margin-top:10px;" onclick="saveTemplates('treatment')">💾 治療計画を保存</button>
     </div>
   </div>
 
-</div>
+</div><!-- /page-wrap -->
 
-<!-- トースト通知 -->
 <div class="toast" id="toast"></div>
 
 <script>
 // ===== デフォルト定型文 =====
 const DEFAULT_PROBLEMS = [
-  "義歯の適合不良",
-  "義歯の破損・欠損",
-  "口腔乾燥（ドライマウス）",
-  "歯石・プラークの付着",
-  "歯肉の腫脹・出血",
-  "口腔粘膜の異常",
-  "う蝕（虫歯）の進行",
-  "残根（歯根のみ残存）",
-  "口腔内の汚染・清潔不良",
-  "嚥下・摂食に影響あり",
-  "開口困難",
-  "疼痛（痛み）の訴え"
+  "義歯の適合不良","義歯の破損・欠損","口腔乾燥（ドライマウス）",
+  "歯石・プラークの付着","歯肉の腫脹・出血","口腔粘膜の異常",
+  "う蝕（虫歯）の進行","残根（歯根のみ残存）","口腔内の汚染・清潔不良",
+  "嚥下・摂食に影響あり","開口困難","疼痛（痛み）の訴え"
 ];
-
 const DEFAULT_TREATMENTS = [
-  "義歯調整を実施",
-  "義歯の新製を予定",
-  "義歯洗浄・指導を実施",
-  "スケーリング（歯石除去）を実施",
-  "口腔ケア指導を行う",
-  "抜歯処置を実施",
-  "投薬・うがい薬を処方",
-  "口腔保湿剤の使用を指導",
-  "経過観察を継続",
-  "次回訪問時に再評価",
-  "嚥下訓練を指導",
-  "家族・介護者へのケア指導"
+  "義歯調整を実施","義歯の新製を予定","義歯洗浄・指導を実施",
+  "スケーリング（歯石除去）を実施","口腔ケア指導を行う","抜歯処置を実施",
+  "投薬・うがい薬を処方","口腔保湿剤の使用を指導","経過観察を継続",
+  "次回訪問時に再評価","嚥下訓練を指導","家族・介護者へのケア指導"
 ];
 
-// ===== 状態管理 =====
-let photos = []; // { dataUrl, caption }
+let photos = [];
 let selectedProblems = new Set();
 let selectedTreatments = new Set();
 let recognition = null;
-let activeRecognitionBtn = null;
+let activeVoiceBtn = null;
 
 // ===== 初期化 =====
 window.addEventListener('DOMContentLoaded', () => {
-  // 今日の日付をセット
   document.getElementById('visit-date').value = new Date().toISOString().split('T')[0];
-
-  // クリニック名を復元（デフォルト：医療法人ベルサンテ　ふくみつ歯科医院）
-  const saved = localStorage.getItem('clinicName');
-  document.getElementById('clinic-name').value = saved || '医療法人ベルサンテ　ふくみつ歯科医院';
-
-  // 定型文を読み込む
+  // クリニック情報復元
+  const s = JSON.parse(localStorage.getItem('clinicSettings') || '{}');
+  document.getElementById('clinic-legal').value = s.legal || '医療法人ベルサンテ';
+  document.getElementById('clinic-main').value  = s.main  || 'ふくみつ歯科医院';
+  document.getElementById('clinic-addr').value  = s.addr  || '〒814-0152　福岡市城南区長尾5-31-6　Tel: 092-861-8888';
+  // 定型文
   loadChips('problem', getProblemTemplates());
   loadChips('treatment', getTreatmentTemplates());
-
-  // 設定エリアのエディタに定型文をセット
-  document.getElementById('problem-templates-editor').value = getProblemTemplates().join('\n');
+  document.getElementById('problem-templates-editor').value   = getProblemTemplates().join('\n');
   document.getElementById('treatment-templates-editor').value = getTreatmentTemplates().join('\n');
 });
 
-function getProblemTemplates() {
-  const saved = localStorage.getItem('problemTemplates');
-  return saved ? JSON.parse(saved) : DEFAULT_PROBLEMS;
+function saveSettings() {
+  localStorage.setItem('clinicSettings', JSON.stringify({
+    legal: document.getElementById('clinic-legal').value,
+    main:  document.getElementById('clinic-main').value,
+    addr:  document.getElementById('clinic-addr').value,
+  }));
 }
-function getTreatmentTemplates() {
-  const saved = localStorage.getItem('treatmentTemplates');
-  return saved ? JSON.parse(saved) : DEFAULT_TREATMENTS;
-}
+
+function getProblemTemplates()   { const s=localStorage.getItem('problemTemplates');   return s?JSON.parse(s):DEFAULT_PROBLEMS; }
+function getTreatmentTemplates() { const s=localStorage.getItem('treatmentTemplates'); return s?JSON.parse(s):DEFAULT_TREATMENTS; }
 
 // ===== タブ切り替え =====
 function switchTab(name) {
-  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(name + '-panel').classList.add('active');
-  const tabs = ['info','photos','report','preview','settings'];
-  const idx = tabs.indexOf(name);
-  document.querySelectorAll('.tab')[idx].classList.add('active');
-  window.scrollTo(0, 0);
+  ['info','photos','report','preview','settings'].forEach(n => {
+    document.getElementById(n+'-panel').classList.remove('active');
+  });
+  document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(name+'-panel').classList.add('active');
+  const idx = ['info','photos','report','preview','settings'].indexOf(name);
+  document.querySelectorAll('.cp-tab')[idx].classList.add('active');
+  window.scrollTo(0,0);
 }
 
-// ===== クリニック名の自動保存 =====
-function saveClinicName() {
-  localStorage.setItem('clinicName', document.getElementById('clinic-name').value);
-}
-
-// ===== 写真の追加 =====
+// ===== 写真 =====
 function addPhotos(input) {
-  const files = Array.from(input.files);
-  files.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      photos.push({ dataUrl: e.target.result, caption: '' });
-      renderPhotos();
-    };
-    reader.readAsDataURL(file);
+  Array.from(input.files).forEach(file => {
+    const r = new FileReader();
+    r.onload = e => { photos.push({dataUrl:e.target.result, caption:''}); renderPhotos(); };
+    r.readAsDataURL(file);
   });
-  input.value = '';
+  input.value='';
 }
-
 function renderPhotos() {
-  const grid = document.getElementById('photos-grid');
-  grid.innerHTML = '';
-  photos.forEach((photo, i) => {
-    const div = document.createElement('div');
-    div.className = 'photo-item';
-    div.innerHTML = `
-      <img src="${photo.dataUrl}" alt="写真${i+1}">
-      <button class="btn-remove-photo" onclick="removePhoto(${i})">✕</button>
-      <div class="photo-caption">
-        <input type="text" placeholder="キャプション（例：下顎前歯部）"
-          value="${photo.caption}"
-          oninput="photos[${i}].caption = this.value"
-          style="font-size:12px;">
-      </div>`;
-    grid.appendChild(div);
+  const g = document.getElementById('photos-grid');
+  g.innerHTML = '';
+  photos.forEach((p,i) => {
+    const d = document.createElement('div');
+    d.className = 'photo-item';
+    d.innerHTML = `<img src="${p.dataUrl}"><button class="btn-remove-photo" onclick="removePhoto(${i})">✕</button>
+      <div class="photo-caption"><input type="text" placeholder="キャプション" value="${p.caption}" oninput="photos[${i}].caption=this.value" style="font-size:12px;"></div>`;
+    g.appendChild(d);
   });
 }
+function removePhoto(i) { photos.splice(i,1); renderPhotos(); }
 
-function removePhoto(i) {
-  photos.splice(i, 1);
-  renderPhotos();
-}
-
-// ===== 定型文チップの生成 =====
+// ===== 定型文チップ =====
 function loadChips(type, templates) {
-  const container = document.getElementById(type + '-chips');
-  const selectedSet = type === 'problem' ? selectedProblems : selectedTreatments;
-  container.innerHTML = '';
+  const c = document.getElementById(type+'-chips');
+  const set = type==='problem' ? selectedProblems : selectedTreatments;
+  c.innerHTML = '';
   templates.forEach(text => {
-    const chip = document.createElement('div');
-    chip.className = 'chip' + (selectedSet.has(text) ? ' selected' : '');
-    chip.textContent = text;
-    chip.onclick = () => toggleChip(chip, type, text);
-    container.appendChild(chip);
+    const ch = document.createElement('div');
+    ch.className = 'chip'+(set.has(text)?' selected':'');
+    ch.textContent = text;
+    ch.onclick = () => { set.has(text)?set.delete(text):set.add(text); ch.classList.toggle('selected'); };
+    c.appendChild(ch);
   });
 }
-
-function toggleChip(chip, type, text) {
-  const selectedSet = type === 'problem' ? selectedProblems : selectedTreatments;
-  if (selectedSet.has(text)) {
-    selectedSet.delete(text);
-    chip.classList.remove('selected');
-  } else {
-    selectedSet.add(text);
-    chip.classList.add('selected');
-  }
-  updateSelectedList(type);
-}
-
-function updateSelectedList(type) {
-  const selectedSet = type === 'problem' ? selectedProblems : selectedTreatments;
-  const listEl = document.getElementById(type + '-selected-list');
-  listEl.innerHTML = '';
-  if (selectedSet.size === 0) {
-    listEl.innerHTML = '<span style="color:#a0aec0;">未選択</span>';
-    return;
-  }
-  selectedSet.forEach(text => {
-    const item = document.createElement('div');
-    item.className = 'selected-item';
-    item.innerHTML = `<span>・${text}</span><button class="btn-remove-item" onclick="removeSelected('${type}','${text.replace(/'/g,"\\'")}')">×</button>`;
-    listEl.appendChild(item);
-  });
-}
-
-function removeSelected(type, text) {
-  const selectedSet = type === 'problem' ? selectedProblems : selectedTreatments;
-  selectedSet.delete(text);
-  // チップの選択状態も更新
-  document.querySelectorAll('#' + type + '-chips .chip').forEach(chip => {
-    if (chip.textContent === text) chip.classList.remove('selected');
-  });
-  updateSelectedList(type);
-}
-
-// ===== 定型文の保存 =====
 function saveTemplates(type) {
-  const editor = document.getElementById(type + '-templates-editor');
-  const lines = editor.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  localStorage.setItem(type + 'Templates', JSON.stringify(lines));
+  const lines = document.getElementById(type+'-templates-editor').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  localStorage.setItem(type+'Templates', JSON.stringify(lines));
   loadChips(type, lines);
   showToast('定型文を保存しました');
 }
 
 // ===== 音声入力 =====
 function startVoice(fieldId, btn) {
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    showToast('このブラウザでは音声入力が使えません');
-    return;
-  }
-
-  // 同じボタンを再タップしたら停止
-  if (recognition && activeRecognitionBtn === btn) {
-    recognition.stop();
-    return;
-  }
-
-  // 前の認識を停止
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showToast('このブラウザでは音声入力が使えません'); return; }
+  if (recognition && activeVoiceBtn===btn) { recognition.stop(); return; }
   if (recognition) recognition.stop();
-
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
-  recognition.lang = 'ja-JP';
-  recognition.continuous = false;
-  recognition.interimResults = false;
-
-  activeRecognitionBtn = btn;
-  btn.classList.add('recording');
-  btn.textContent = '⏹';
-  showToast('録音中... タップで停止');
-
+  recognition = new SR();
+  recognition.lang='ja-JP'; recognition.continuous=false; recognition.interimResults=false;
+  activeVoiceBtn=btn; btn.classList.add('recording'); btn.textContent='⏹';
+  showToast('録音中…');
   recognition.onresult = e => {
-    const text = e.results[0][0].transcript;
-    const el = document.getElementById(fieldId);
-    el.value = (el.value ? el.value + '\n' : '') + text;
-    // photos captionはphotoオブジェクトも更新
-    if (fieldId.startsWith('caption-')) {
-      const idx = parseInt(fieldId.split('-')[1]);
-      if (!isNaN(idx)) photos[idx].caption = el.value;
-    }
+    const el=document.getElementById(fieldId);
+    el.value=(el.value?el.value+'\n':'')+e.results[0][0].transcript;
   };
-
-  recognition.onerror = () => {
-    showToast('音声認識エラー。もう一度お試しください。');
-  };
-
-  recognition.onend = () => {
-    btn.classList.remove('recording');
-    btn.textContent = '🎤';
-    activeRecognitionBtn = null;
-    recognition = null;
-  };
-
+  recognition.onerror = () => showToast('音声認識エラー');
+  recognition.onend = () => { btn.classList.remove('recording'); btn.textContent='🎤'; activeVoiceBtn=null; recognition=null; };
   recognition.start();
 }
 
 // ===== プレビュー生成 =====
 function buildPreview() {
-  const clinicName = document.getElementById('clinic-name').value || '（クリニック名未入力）';
-  const patientName = document.getElementById('patient-name').value || '（氏名未入力）';
-  const visitDateRaw = document.getElementById('visit-date').value;
-  const visitDate = visitDateRaw ? formatDate(visitDateRaw) : '（日付未設定）';
-  const doctorName = document.getElementById('doctor-name').value;
-  const problemCustom = document.getElementById('problem-custom').value.trim();
-  const treatmentCustom = document.getElementById('treatment-custom').value.trim();
-  const notes = document.getElementById('notes').value.trim();
+  const legal   = document.getElementById('clinic-legal').value || '医療法人ベルサンテ';
+  const main    = document.getElementById('clinic-main').value  || 'ふくみつ歯科医院';
+  const addr    = document.getElementById('clinic-addr').value  || '';
+  const pName   = document.getElementById('patient-name').value || '—';
+  const pDob    = document.getElementById('patient-dob').value  || '—';
+  const doctor  = document.getElementById('doctor-name').value  || '—';
+  const dateRaw = document.getElementById('visit-date').value;
+  const dateStr = dateRaw ? formatDate(dateRaw) : '—';
 
-  // 問題点リスト
-  const allProblems = [...selectedProblems];
-  if (problemCustom) problemCustom.split('\n').filter(l=>l.trim()).forEach(l => allProblems.push(l.trim()));
+  // 患者バー
+  set('pr-clinic-legal', legal);
+  set('pr-clinic-main',  main);
+  set('pr-clinic-addr',  addr);
+  set('pr-name',   pName+' 様');
+  set('pr-dob',    pDob);
+  set('pr-doctor', doctor);
+  set('pr-date',   dateStr);
 
-  // 治療計画リスト
-  const allTreatments = [...selectedTreatments];
-  if (treatmentCustom) treatmentCustom.split('\n').filter(l=>l.trim()).forEach(l => allTreatments.push(l.trim()));
+  // フッター
+  set('pr-footer-clinic', legal+'　'+main);
+  set('pr-footer-addr',   addr.replace(/　Tel.*$/,''));
+  set('pr-footer-date',   '作成：'+dateStr);
 
-  // 写真HTML
-  let photosHtml = '';
+  // 写真
+  const ps = document.getElementById('pr-photos-section');
+  const pg = document.getElementById('pr-photos');
   if (photos.length > 0) {
-    photosHtml = `<div class="preview-photos">`;
-    photos.forEach((p, i) => {
-      photosHtml += `<div class="preview-photo-item">
-        <img src="${p.dataUrl}" alt="写真${i+1}">
-        ${p.caption ? `<div class="preview-photo-caption">${escHtml(p.caption)}</div>` : ''}
-      </div>`;
-    });
-    photosHtml += `</div>`;
-  }
+    ps.style.display='';
+    pg.innerHTML = photos.map(p=>`
+      <div class="doc-photo-item">
+        <img src="${p.dataUrl}">
+        ${p.caption?`<div class="doc-photo-cap">${esc(p.caption)}</div>`:''}
+      </div>`).join('');
+  } else { ps.style.display='none'; }
 
-  // 問題点HTML
-  const problemsHtml = allProblems.length > 0
-    ? allProblems.map(p => `・${escHtml(p)}`).join('<br>')
+  // 現状と診断
+  const allProblems = [...selectedProblems];
+  const pCustom = document.getElementById('problem-custom').value.trim();
+  if (pCustom) pCustom.split('\n').filter(Boolean).forEach(l=>allProblems.push(l.trim()));
+  document.getElementById('pr-diagnosis').innerHTML = allProblems.length
+    ? allProblems.map(p=>`・<span class="hl">${esc(p)}</span>`).join('<br>')
     : '（記入なし）';
 
-  // 治療計画HTML
-  const treatmentsHtml = allTreatments.length > 0
-    ? allTreatments.map(t => `・${escHtml(t)}`).join('<br>')
+  // 治療計画
+  const allTreatments = [...selectedTreatments];
+  const tCustom = document.getElementById('treatment-custom').value.trim();
+  if (tCustom) tCustom.split('\n').filter(Boolean).forEach(l=>allTreatments.push(l.trim()));
+  document.getElementById('pr-treatment').innerHTML = allTreatments.length
+    ? allTreatments.map(t=>`・${esc(t)}`).join('<br>')
     : '（記入なし）';
 
-  // 備考HTML
-  const notesHtml = notes
-    ? `<div class="preview-section">
-        <div class="preview-section-title">📌 次回予定・備考</div>
-        <div class="preview-section-body">${escHtml(notes).replace(/\n/g,'<br>')}</div>
-       </div>`
-    : '';
+  // 担当医より
+  const notes = document.getElementById('notes').value.trim();
+  document.getElementById('pr-notes').innerHTML = notes ? esc(notes).replace(/\n/g,'<br>') : '（記入なし）';
 
-  // 担当医HTML
-  const doctorHtml = doctorName
-    ? `<div><strong>担当医師</strong>${escHtml(doctorName)}</div>`
-    : '';
-
-  document.getElementById('preview-content').innerHTML = `
-    <div class="preview-clinic">${escHtml(clinicName)}</div>
-    <div class="preview-title">患者様ご家族へのご説明</div>
-    <hr class="preview-divider">
-    <div class="preview-info">
-      <div><strong>患者氏名</strong>${escHtml(patientName)} 様</div>
-      <div><strong>診療日</strong>${escHtml(visitDate)}</div>
-      ${doctorHtml}
-    </div>
-    ${photosHtml}
-    <div class="preview-section">
-      <div class="preview-section-title">⚠️ 現状の問題点</div>
-      <div class="preview-section-body">${problemsHtml}</div>
-    </div>
-    <div class="preview-section">
-      <div class="preview-section-title">💊 治療計画・対応内容</div>
-      <div class="preview-section-body">${treatmentsHtml}</div>
-    </div>
-    ${notesHtml}
-    <div class="preview-footer">${escHtml(clinicName)}　${escHtml(visitDate)} 作成</div>
-  `;
+  // ご家族へのメモ
+  const famSupport = document.getElementById('fam-support').value.trim();
+  const famWatch   = document.getElementById('fam-watch').value.trim();
+  const famNext    = document.getElementById('fam-next').value.trim();
+  set('pr-fam-support', famSupport || '—');
+  set('pr-fam-watch',   famWatch   || '—');
+  set('pr-fam-next',    famNext    || '—');
 
   showToast('プレビューを更新しました');
 }
@@ -866,38 +751,24 @@ function buildPreview() {
 // ===== リセット =====
 function resetAll() {
   if (!confirm('入力内容をすべてリセットしますか？')) return;
-  photos = [];
-  selectedProblems.clear();
-  selectedTreatments.clear();
+  photos=[]; selectedProblems.clear(); selectedTreatments.clear();
   renderPhotos();
-  ['patient-name','doctor-name','problem-custom','treatment-custom','notes'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  ['patient-name','patient-dob','doctor-name','problem-custom','treatment-custom','notes','fam-support','fam-watch','fam-next'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('visit-date').value = new Date().toISOString().split('T')[0];
   loadChips('problem', getProblemTemplates());
   loadChips('treatment', getTreatmentTemplates());
-  updateSelectedList('problem');
-  updateSelectedList('treatment');
-  document.getElementById('preview-content').innerHTML = '<div style="color:#a0aec0;text-align:center;padding:40px 0;">「プレビューを確認」ボタンで<br>文書を生成します</div>';
   switchTab('info');
   showToast('リセットしました');
 }
 
 // ===== ユーティリティ =====
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
-}
-
-function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+function set(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
+function formatDate(d){ const dt=new Date(d); return `${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日`; }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
 }
 </script>
 </body>
