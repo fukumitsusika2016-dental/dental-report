@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="歯科説明書">
+<title>訪問歯科 説明文書作成</title>
+<style>
+  /* ===== 基本スタイル ===== */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: #f0f4f8;
+    color: #1a202c;
+    min-height: 100vh;
+  }
+
+  /* ===== ヘッダー ===== */
+  .app-header {
+    background: #2b6cb0;
+    color: white;
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .app-header h1 { font-size: 18px; font-weight: 700; }
+  .app-header span { font-size: 22px; }
+
+  /* ===== タブ ===== */
+  .tabs {
+    display: flex;
+    background: white;
+    border-bottom: 2px solid #e2e8f0;
+    position: sticky;
+    top: 56px;
+    z-index: 90;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    color: #718096;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .tab.active {
+    color: #2b6cb0;
+    border-bottom-color: #2b6cb0;
+  }
+  .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+  /* ===== メインコンテンツ ===== */
+  .main { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+  .section-panel { display: none; }
+  .section-panel.active { display: block; }
+
+  /* ===== カード ===== */
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #4a5568;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ===== フォーム要素 ===== */
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  input[type="text"], input[type="date"], textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    background: #f7fafc;
+    -webkit-appearance: none;
+  }
+  input[type="text"]:focus, input[type="date"]:focus, textarea:focus {
+    outline: none;
+    border-color: #2b6cb0;
+    background: white;
+  }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* 音声入力付きフィールド */
+  .voice-field {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .voice-field input, .voice-field textarea { flex: 1; }
+
+  .btn-voice {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background: #ebf8ff;
+    color: #2b6cb0;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-voice:active, .btn-voice.recording {
+    background: #fc8181;
+    color: white;
+    transform: scale(1.1);
+  }
+
+  /* ===== ボタン ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: #2b6cb0; color: white; width: 100%; }
+  .btn-secondary { background: #e2e8f0; color: #4a5568; width: 100%; }
+  .btn-danger { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; }
+  .btn-add-photo {
+    background: #f0fff4;
+    color: #276749;
+    border: 2px dashed #9ae6b4;
+    width: 100%;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ===== 写真グリッド ===== */
+  .photos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .photo-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+  }
+  .photo-item img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+  }
+  .photo-caption {
+    padding: 8px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .photo-caption input {
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    padding: 4px 6px;
+    width: 100%;
+  }
+  .photo-caption input:focus { outline: none; }
+  .btn-remove-photo {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ===== 定型文チップ ===== */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: #ebf8ff;
+    color: #2b6cb0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid #bee3f8;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .chip.selected {
+    background: #2b6cb0;
+    color: white;
+    border-color: #2b6cb0;
+  }
+  .chip:active { transform: scale(0.96); }
+
+  /* ===== 選択済みリスト ===== */
+  .selected-list {
+    margin-top: 12px;
+    min-height: 44px;
+    padding: 10px 12px;
+    background: #f7fafc;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #2d3748;
+  }
+  .selected-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+  .selected-item span { flex: 1; }
+  .btn-remove-item {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  /* ===== 設定画面 ===== */
+  .settings-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f4f8;
+  }
+  .settings-item:last-child { border-bottom: none; }
+
+  .template-editor {
+    width: 100%;
+    min-height: 120px;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f7fafc;
+    resize: vertical;
+  }
+  .settings-hint { font-size: 12px; color: #a0aec0; margin-top: 6px; }
+
+  /* ===== プレビュー ===== */
+  #preview-panel .card { padding: 0; overflow: hidden; }
+  .preview-doc {
+    padding: 24px;
+    font-size: 14px;
+  }
+  .preview-clinic { font-size: 11px; color: #718096; margin-bottom: 2px; }
+  .preview-title { font-size: 20px; font-weight: 700; color: #2b6cb0; margin-bottom: 4px; }
+  .preview-divider { border: none; border-top: 2px solid #2b6cb0; margin: 12px 0; }
+  .preview-info { font-size: 14px; margin-bottom: 16px; line-height: 2; }
+  .preview-info strong { display: inline-block; width: 80px; color: #718096; }
+  .preview-photos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .preview-photo-item img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
+  .preview-photo-caption { font-size: 11px; color: #718096; margin-top: 4px; text-align: center; }
+  .preview-section { margin-bottom: 16px; }
+  .preview-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    background: #ebf8ff;
+    color: #2b6cb0;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border-left: 4px solid #2b6cb0;
+  }
+  .preview-section-body { padding-left: 12px; font-size: 14px; line-height: 2; }
+  .preview-footer { font-size: 11px; color: #a0aec0; text-align: right; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+
+  /* ===== 印刷スタイル ===== */
+  @media print {
+    body { background: white; }
+    .app-header, .tabs, .main > :not(#preview-panel), .print-buttons { display: none !important; }
+    #preview-panel { display: block !important; }
+    #preview-panel .card { box-shadow: none; border: none; }
+    .preview-doc { padding: 0; }
+    @page { size: A4; margin: 20mm; }
+  }
+
+  /* ===== ユーティリティ ===== */
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .print-buttons { display: flex; gap: 12px; margin-bottom: 16px; }
+  .print-buttons .btn { flex: 1; }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2d3748;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  .badge {
+    display: inline-block;
+    background: #fc8181;
+    color: white;
+    border-radius: 10px;
+    font-size: 11px;
+    padding: 1px 6px;
+    margin-left: 4px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <span>🦷</span>
+  <h1>訪問歯科 説明文書</h1>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('info')">
+    <span class="tab-icon">📋</span>患者情報
+  </div>
+  <div class="tab" onclick="switchTab('photos')">
+    <span class="tab-icon">📷</span>写真
+  </div>
+  <div class="tab" onclick="switchTab('report')">
+    <span class="tab-icon">📝</span>診療内容
+  </div>
+  <div class="tab" onclick="switchTab('preview')">
+    <span class="tab-icon">👁</span>プレビュー
+  </div>
+  <div class="tab" onclick="switchTab('settings')">
+    <span class="tab-icon">⚙️</span>設定
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ===== 患者情報タブ ===== -->
+  <div id="info-panel" class="section-panel active">
+    <div class="card">
+      <div class="card-title">🏥 クリニック情報</div>
+      <label>クリニック名</label>
+      <input type="text" id="clinic-name" placeholder="例：○○歯科クリニック" oninput="saveClinicName()">
+    </div>
+    <div class="card">
+      <div class="card-title">👤 患者情報</div>
+      <label>患者氏名</label>
+      <div class="voice-field">
+        <input type="text" id="patient-name" placeholder="例：山田 太郎">
+        <button class="btn-voice" onclick="startVoice('patient-name', this)" title="音声入力">🎤</button>
+      </div>
+      <label>診療日</label>
+      <input type="date" id="visit-date">
+      <label>担当歯科医師（任意）</label>
+      <div class="voice-field">
+        <input type="text" id="doctor-name" placeholder="例：田中 一郎 先生">
+        <button class="btn-voice" onclick="startVoice('doctor-name', this)" title="音声入力">🎤</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="switchTab('photos')">次へ：写真を追加 →</button>
+  </div>
+
+  <!-- ===== 写真タブ ===== -->
+  <div id="photos-panel" class="section-panel">
+    <div class="card">
+      <div class="card-title">📷 口腔内写真</div>
+      <div class="photos-grid" id="photos-grid"></div>
+      <label style="cursor:pointer;">
+        <div class="btn-add-photo">
+          ＋ 写真を追加する（カメラロールから選択）
+        </div>
+        <input type="file" accept="image/*" multiple style="display:none;" onchange="addPhotos(this)">
+      </label>
+    </div>
+    <button class="btn btn-primary" onclick="switchTab('report')">次へ：診療内容を入力 →</button>
+  </div>
+
+  <!-- ===== 診療内容タブ ===== -->
+  <div id="report-panel" class="section-panel">
+    <!-- 問題点 -->
+    <div class="card">
+      <div class="card-title">⚠️ 現状の問題点</div>
+      <p style="font-size:13px;color:#718096;margin-bottom:8px;">タップで選択・解除できます</p>
+      <div class="chips" id="problem-chips"></div>
+      <div class="mt-12">
+        <label>自由記述（音声入力可）</label>
+        <div class="voice-field">
+          <textarea id="problem-custom" placeholder="その他の問題点を入力..."></textarea>
+          <button class="btn-voice" onclick="startVoice('problem-custom', this)" style="margin-top:2px;" title="音声入力">🎤</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4a5568;margin-bottom:6px;">選択中の問題点</div>
+        <div class="selected-list" id="problem-selected-list"><span style="color:#a0aec0;">未選択</span></div>
+      </div>
+    </div>
+
+    <!-- 治療計画 -->
+    <div class="card">
+      <div class="card-title">💊 治療計画・対応内容</div>
+      <p style="font-size:13px;color:#718096;margin-bottom:8px;">タップで選択・解除できます</p>
+      <div class="chips" id="treatment-chips"></div>
+      <div class="mt-12">
+        <label>自由記述（音声入力可）</label>
+        <div class="voice-field">
+          <textarea id="treatment-custom" placeholder="その他の治療計画を入力..."></textarea>
+          <button class="btn-voice" onclick="startVoice('treatment-custom', this)" style="margin-top:2px;" title="音声入力">🎤</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div style="font-size:13px;font-weight:600;color:#4a5568;margin-bottom:6px;">選択中の治療計画</div>
+        <div class="selected-list" id="treatment-selected-list"><span style="color:#a0aec0;">未選択</span></div>
+      </div>
+    </div>
+
+    <!-- 備考 -->
+    <div class="card">
+      <div class="card-title">📌 次回予定・備考（任意）</div>
+      <div class="voice-field">
+        <textarea id="notes" placeholder="次回訪問予定、家族への申し送りなど..."></textarea>
+        <button class="btn-voice" onclick="startVoice('notes', this)" style="margin-top:2px;" title="音声入力">🎤</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="switchTab('preview'); buildPreview();">プレビューを確認 →</button>
+  </div>
+
+  <!-- ===== プレビュータブ ===== -->
+  <div id="preview-panel" class="section-panel">
+    <div class="print-buttons">
+      <button class="btn btn-primary" onclick="window.print()">🖨️ 印刷する</button>
+      <button class="btn btn-secondary" onclick="buildPreview()">🔄 更新</button>
+    </div>
+    <div class="card">
+      <div id="preview-content" class="preview-doc">
+        <div style="color:#a0aec0;text-align:center;padding:40px 0;">「プレビューを確認」ボタンで<br>文書を生成します</div>
+      </div>
+    </div>
+    <button class="btn btn-secondary mt-8" onclick="resetAll()" style="margin-top:16px;">🗑️ リセット（新しい患者）</button>
+  </div>
+
+  <!-- ===== 設定タブ ===== -->
+  <div id="settings-panel" class="section-panel">
+    <div class="card">
+      <div class="card-title">⚠️ 問題点の定型文を編集</div>
+      <div class="settings-item">
+        <textarea class="template-editor" id="problem-templates-editor"></textarea>
+        <div class="settings-hint">1行に1項目。変更後「保存」を押してください。</div>
+      </div>
+      <button class="btn btn-primary mt-8" onclick="saveTemplates('problem')">💾 問題点を保存</button>
+    </div>
+    <div class="card">
+      <div class="card-title">💊 治療計画の定型文を編集</div>
+      <div class="settings-item">
+        <textarea class="template-editor" id="treatment-templates-editor"></textarea>
+        <div class="settings-hint">1行に1項目。変更後「保存」を押してください。</div>
+      </div>
+      <button class="btn btn-primary mt-8" onclick="saveTemplates('treatment')">💾 治療計画を保存</button>
+    </div>
+    <div class="card">
+      <div class="card-title">ℹ️ このアプリについて</div>
+      <p style="font-size:13px;color:#718096;line-height:1.8;">
+        訪問歯科診療での患者家族向け説明文書を、iPhone上で完結して作成できるツールです。<br><br>
+        作成した文書は印刷ボタンから直接印刷（AirPrint対応プリンター）、またはPDFとして保存できます。<br><br>
+        データはこのデバイスのみに保存され、外部に送信されることはありません。
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- トースト通知 -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== デフォルト定型文 =====
+const DEFAULT_PROBLEMS = [
+  "義歯の適合不良",
+  "義歯の破損・欠損",
+  "口腔乾燥（ドライマウス）",
+  "歯石・プラークの付着",
+  "歯肉の腫脹・出血",
+  "口腔粘膜の異常",
+  "う蝕（虫歯）の進行",
+  "残根（歯根のみ残存）",
+  "口腔内の汚染・清潔不良",
+  "嚥下・摂食に影響あり",
+  "開口困難",
+  "疼痛（痛み）の訴え"
+];
+
+const DEFAULT_TREATMENTS = [
+  "義歯調整を実施",
+  "義歯の新製を予定",
+  "義歯洗浄・指導を実施",
+  "スケーリング（歯石除去）を実施",
+  "口腔ケア指導を行う",
+  "抜歯処置を実施",
+  "投薬・うがい薬を処方",
+  "口腔保湿剤の使用を指導",
+  "経過観察を継続",
+  "次回訪問時に再評価",
+  "嚥下訓練を指導",
+  "家族・介護者へのケア指導"
+];
+
+// ===== 状態管理 =====
+let photos = []; // { dataUrl, caption }
+let selectedProblems = new Set();
+let selectedTreatments = new Set();
+let recognition = null;
+let activeRecognitionBtn = null;
+
+// ===== 初期化 =====
+window.addEventListener('DOMContentLoaded', () => {
+  // 今日の日付をセット
+  document.getElementById('visit-date').value = new Date().toISOString().split('T')[0];
+
+  // クリニック名を復元
+  const saved = localStorage.getItem('clinicName');
+  if (saved) document.getElementById('clinic-name').value = saved;
+
+  // 定型文を読み込む
+  loadChips('problem', getProblemTemplates());
+  loadChips('treatment', getTreatmentTemplates());
+
+  // 設定エリアのエディタに定型文をセット
+  document.getElementById('problem-templates-editor').value = getProblemTemplates().join('\n');
+  document.getElementById('treatment-templates-editor').value = getTreatmentTemplates().join('\n');
+});
+
+function getProblemTemplates() {
+  const saved = localStorage.getItem('problemTemplates');
+  return saved ? JSON.parse(saved) : DEFAULT_PROBLEMS;
+}
+function getTreatmentTemplates() {
+  const saved = localStorage.getItem('treatmentTemplates');
+  return saved ? JSON.parse(saved) : DEFAULT_TREATMENTS;
+}
+
+// ===== タブ切り替え =====
+function switchTab(name) {
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(name + '-panel').classList.add('active');
+  const tabs = ['info','photos','report','preview','settings'];
+  const idx = tabs.indexOf(name);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ===== クリニック名の自動保存 =====
+function saveClinicName() {
+  localStorage.setItem('clinicName', document.getElementById('clinic-name').value);
+}
+
+// ===== 写真の追加 =====
+function addPhotos(input) {
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      photos.push({ dataUrl: e.target.result, caption: '' });
+      renderPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function renderPhotos() {
+  const grid = document.getElementById('photos-grid');
+  grid.innerHTML = '';
+  photos.forEach((photo, i) => {
+    const div = document.createElement('div');
+    div.className = 'photo-item';
+    div.innerHTML = `
+      <img src="${photo.dataUrl}" alt="写真${i+1}">
+      <button class="btn-remove-photo" onclick="removePhoto(${i})">✕</button>
+      <div class="photo-caption">
+        <input type="text" placeholder="キャプション（例：下顎前歯部）"
+          value="${photo.caption}"
+          oninput="photos[${i}].caption = this.value"
+          style="font-size:12px;">
+      </div>`;
+    grid.appendChild(div);
+  });
+}
+
+function removePhoto(i) {
+  photos.splice(i, 1);
+  renderPhotos();
+}
+
+// ===== 定型文チップの生成 =====
+function loadChips(type, templates) {
+  const container = document.getElementById(type + '-chips');
+  const selectedSet = type === 'problem' ? selectedProblems : selectedTreatments;
+  container.innerHTML = '';
+  templates.forEach(text => {
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (selectedSet.has(text) ? ' selected' : '');
+    chip.textContent = text;
+    chip.onclick = () => toggleChip(chip, type, text);
+    container.appendChild(chip);
+  });
+}
+
+function toggleChip(chip, type, text) {
+  const selectedSet = type === 'problem' ? selectedProblems : selectedTreatments;
+  if (selectedSet.has(text)) {
+    selectedSet.delete(text);
+    chip.classList.remove('selected');
+  } else {
+    selectedSet.add(text);
+    chip.classList.add('selected');
+  }
+  updateSelectedList(type);
+}
+
+function updateSelectedList(type) {
+  const selectedSet = type === 'problem' ? selectedProblems : selectedTreatments;
+  const listEl = document.getElementById(type + '-selected-list');
+  listEl.innerHTML = '';
+  if (selectedSet.size === 0) {
+    listEl.innerHTML = '<span style="color:#a0aec0;">未選択</span>';
+    return;
+  }
+  selectedSet.forEach(text => {
+    const item = document.createElement('div');
+    item.className = 'selected-item';
+    item.innerHTML = `<span>・${text}</span><button class="btn-remove-item" onclick="removeSelected('${type}','${text.replace(/'/g,"\\'")}')">×</button>`;
+    listEl.appendChild(item);
+  });
+}
+
+function removeSelected(type, text) {
+  const selectedSet = type === 'problem' ? selectedProblems : selectedTreatments;
+  selectedSet.delete(text);
+  // チップの選択状態も更新
+  document.querySelectorAll('#' + type + '-chips .chip').forEach(chip => {
+    if (chip.textContent === text) chip.classList.remove('selected');
+  });
+  updateSelectedList(type);
+}
+
+// ===== 定型文の保存 =====
+function saveTemplates(type) {
+  const editor = document.getElementById(type + '-templates-editor');
+  const lines = editor.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  localStorage.setItem(type + 'Templates', JSON.stringify(lines));
+  loadChips(type, lines);
+  showToast('定型文を保存しました');
+}
+
+// ===== 音声入力 =====
+function startVoice(fieldId, btn) {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showToast('このブラウザでは音声入力が使えません');
+    return;
+  }
+
+  // 同じボタンを再タップしたら停止
+  if (recognition && activeRecognitionBtn === btn) {
+    recognition.stop();
+    return;
+  }
+
+  // 前の認識を停止
+  if (recognition) recognition.stop();
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  activeRecognitionBtn = btn;
+  btn.classList.add('recording');
+  btn.textContent = '⏹';
+  showToast('録音中... タップで停止');
+
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript;
+    const el = document.getElementById(fieldId);
+    el.value = (el.value ? el.value + '\n' : '') + text;
+    // photos captionはphotoオブジェクトも更新
+    if (fieldId.startsWith('caption-')) {
+      const idx = parseInt(fieldId.split('-')[1]);
+      if (!isNaN(idx)) photos[idx].caption = el.value;
+    }
+  };
+
+  recognition.onerror = () => {
+    showToast('音声認識エラー。もう一度お試しください。');
+  };
+
+  recognition.onend = () => {
+    btn.classList.remove('recording');
+    btn.textContent = '🎤';
+    activeRecognitionBtn = null;
+    recognition = null;
+  };
+
+  recognition.start();
+}
+
+// ===== プレビュー生成 =====
+function buildPreview() {
+  const clinicName = document.getElementById('clinic-name').value || '（クリニック名未入力）';
+  const patientName = document.getElementById('patient-name').value || '（氏名未入力）';
+  const visitDateRaw = document.getElementById('visit-date').value;
+  const visitDate = visitDateRaw ? formatDate(visitDateRaw) : '（日付未設定）';
+  const doctorName = document.getElementById('doctor-name').value;
+  const problemCustom = document.getElementById('problem-custom').value.trim();
+  const treatmentCustom = document.getElementById('treatment-custom').value.trim();
+  const notes = document.getElementById('notes').value.trim();
+
+  // 問題点リスト
+  const allProblems = [...selectedProblems];
+  if (problemCustom) problemCustom.split('\n').filter(l=>l.trim()).forEach(l => allProblems.push(l.trim()));
+
+  // 治療計画リスト
+  const allTreatments = [...selectedTreatments];
+  if (treatmentCustom) treatmentCustom.split('\n').filter(l=>l.trim()).forEach(l => allTreatments.push(l.trim()));
+
+  // 写真HTML
+  let photosHtml = '';
+  if (photos.length > 0) {
+    photosHtml = `<div class="preview-photos">`;
+    photos.forEach((p, i) => {
+      photosHtml += `<div class="preview-photo-item">
+        <img src="${p.dataUrl}" alt="写真${i+1}">
+        ${p.caption ? `<div class="preview-photo-caption">${escHtml(p.caption)}</div>` : ''}
+      </div>`;
+    });
+    photosHtml += `</div>`;
+  }
+
+  // 問題点HTML
+  const problemsHtml = allProblems.length > 0
+    ? allProblems.map(p => `・${escHtml(p)}`).join('<br>')
+    : '（記入なし）';
+
+  // 治療計画HTML
+  const treatmentsHtml = allTreatments.length > 0
+    ? allTreatments.map(t => `・${escHtml(t)}`).join('<br>')
+    : '（記入なし）';
+
+  // 備考HTML
+  const notesHtml = notes
+    ? `<div class="preview-section">
+        <div class="preview-section-title">📌 次回予定・備考</div>
+        <div class="preview-section-body">${escHtml(notes).replace(/\n/g,'<br>')}</div>
+       </div>`
+    : '';
+
+  // 担当医HTML
+  const doctorHtml = doctorName
+    ? `<div><strong>担当医師</strong>${escHtml(doctorName)}</div>`
+    : '';
+
+  document.getElementById('preview-content').innerHTML = `
+    <div class="preview-clinic">${escHtml(clinicName)}</div>
+    <div class="preview-title">患者様ご家族へのご説明</div>
+    <hr class="preview-divider">
+    <div class="preview-info">
+      <div><strong>患者氏名</strong>${escHtml(patientName)} 様</div>
+      <div><strong>診療日</strong>${escHtml(visitDate)}</div>
+      ${doctorHtml}
+    </div>
+    ${photosHtml}
+    <div class="preview-section">
+      <div class="preview-section-title">⚠️ 現状の問題点</div>
+      <div class="preview-section-body">${problemsHtml}</div>
+    </div>
+    <div class="preview-section">
+      <div class="preview-section-title">💊 治療計画・対応内容</div>
+      <div class="preview-section-body">${treatmentsHtml}</div>
+    </div>
+    ${notesHtml}
+    <div class="preview-footer">${escHtml(clinicName)}　${escHtml(visitDate)} 作成</div>
+  `;
+
+  showToast('プレビューを更新しました');
+}
+
+// ===== リセット =====
+function resetAll() {
+  if (!confirm('入力内容をすべてリセットしますか？')) return;
+  photos = [];
+  selectedProblems.clear();
+  selectedTreatments.clear();
+  renderPhotos();
+  ['patient-name','doctor-name','problem-custom','treatment-custom','notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('visit-date').value = new Date().toISOString().split('T')[0];
+  loadChips('problem', getProblemTemplates());
+  loadChips('treatment', getTreatmentTemplates());
+  updateSelectedList('problem');
+  updateSelectedList('treatment');
+  document.getElementById('preview-content').innerHTML = '<div style="color:#a0aec0;text-align:center;padding:40px 0;">「プレビューを確認」ボタンで<br>文書を生成します</div>';
+  switchTab('info');
+  showToast('リセットしました');
+}
+
+// ===== ユーティリティ =====
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
